@@ -1,3 +1,6 @@
+mod TokenType;
+mod Token;
+
 use std::{env, io};
 use std::cell::RefCell;
 use std::fs::read_to_string;
@@ -17,11 +20,11 @@ fn main() {
     }
 }
 
-fn run_file(filename: &String) -> Result<(), Error>{
+fn run_file(filename: &String) -> Result<(), Error> {
     let file = read_to_string(filename.clone());
 
     if file.is_err() {
-        return Err(Error::new(ErrorKind::NotFound,format!("file {} does not exist!", filename)));
+        return Err(Error::new(ErrorKind::NotFound, format!("file {} does not exist!", filename)));
     } else {
         let file_content = file.unwrap();
 
@@ -33,7 +36,7 @@ fn run_file(filename: &String) -> Result<(), Error>{
     }
 }
 
-fn run_prompt(){
+fn run_prompt() {
     println!("Starting prompt");
     let mut input = String::new();
     loop {
@@ -58,31 +61,33 @@ fn run_prompt(){
 }
 
 fn run(source: &str) {
-    let scanner = LoxScanner{source};
+    let scanner = LoxScanner { source };
     let tokens = scanner.scan_tokens();
     tokens.iter().for_each(|t| println!("Token:{:?}", t));
-
 }
 
 
 struct LoxScanner<'a> {
-    source: &'a str
-}
-
-#[derive(Debug)]
-struct Token {
+    source: &'a str,
 }
 
 trait Scanner {
-    fn scan_tokens(self) -> Vec<Token>;
+    fn scan_tokens(self) -> Vec<Token::Token>;
 }
 
 impl Scanner for LoxScanner<'_> {
-    fn scan_tokens(self) -> Vec<Token> {
+    fn scan_tokens(self) -> Vec<Token::Token> {
         // todo!()
         // vec![Token{}]
         report(81, "scan_tokens", "error");
-        vec![Token{}]
+        vec![
+            Token::Token::new(
+                TokenType::TokenType::EOF,
+                "lexeme".to_string(),
+                "literal".to_string(),
+                0
+            )
+        ]
     }
 }
 
@@ -100,8 +105,8 @@ fn report(line: usize, location: &str, message: &str) {
 thread_local!(static HAS_ERROR: RefCell<bool> = RefCell::new(false));
 
 fn has_global_error() -> bool {
-    HAS_ERROR.with(|has_error|{
-        return *has_error.borrow()
+    HAS_ERROR.with(|has_error| {
+        return *has_error.borrow();
     })
 }
 
