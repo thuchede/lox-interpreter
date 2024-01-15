@@ -1,11 +1,14 @@
-mod TokenType;
-mod Token;
+mod token_type;
+mod token;
+mod scanner;
+mod lox_scanner;
 
 use std::{env, io};
 use std::cell::RefCell;
 use std::fs::read_to_string;
 use std::io::{Error, ErrorKind, Read, Write};
 use std::process::exit;
+use crate::scanner::Scanner;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -61,34 +64,9 @@ fn run_prompt() {
 }
 
 fn run(source: &str) {
-    let scanner = LoxScanner { source };
+    let scanner = lox_scanner::LoxScanner::new(source);
     let tokens = scanner.scan_tokens();
     tokens.iter().for_each(|t| println!("Token:{:?}", t));
-}
-
-
-struct LoxScanner<'a> {
-    source: &'a str,
-}
-
-trait Scanner {
-    fn scan_tokens(self) -> Vec<Token::Token>;
-}
-
-impl Scanner for LoxScanner<'_> {
-    fn scan_tokens(self) -> Vec<Token::Token> {
-        // todo!()
-        // vec![Token{}]
-        report(81, "scan_tokens", "error");
-        vec![
-            Token::Token::new(
-                TokenType::TokenType::EOF,
-                "lexeme".to_string(),
-                "literal".to_string(),
-                0
-            )
-        ]
-    }
 }
 
 fn error(line: usize, message: &str) {
