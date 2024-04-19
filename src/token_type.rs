@@ -23,7 +23,7 @@ pub enum TokenType {
     LessEqual,
     // Literals
     Identifier,
-    String,
+    LoxString(String),
     Number,
     // Keywords
     And,

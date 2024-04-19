@@ -4,7 +4,7 @@ use crate::error;
 use crate::scanner::Scanner;
 use crate::token::Token;
 use crate::token_type::TokenType;
-use crate::token_type::TokenType::{Bang, BangEqual, Comma, Dot, EOF, Equal, EqualEqual, Greater, GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Plus, RightBrace, RightParen, SemiColon, Slash, Star};
+use crate::token_type::TokenType::{Bang, BangEqual, Comma, Dot, EOF, Equal, EqualEqual, Greater, GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, LoxString, Minus, Plus, RightBrace, RightParen, SemiColon, Slash, Star};
 
 pub struct LoxScanner {
     pub(crate) source: String,
@@ -70,6 +70,7 @@ impl LoxScanner {
                 self.line+=1;
                 None
             },
+            '"' => self.string(),
             e => {
                 error(self.line, format!("Unexpected character {}", e).as_str());
                 None
@@ -92,8 +93,9 @@ impl LoxScanner {
     }
 
     fn advance(&mut self) -> char {
+        let res = self.source.chars().nth(self.current).unwrap();
         self.current += 1;
-        self.source.chars().nth(self.current).unwrap()
+        res
     }
 
     fn match_next(&mut self, next_expected_char: char) -> bool {
@@ -113,6 +115,23 @@ impl LoxScanner {
         } else {
             self.source.chars().nth(self.current).unwrap()
         }
+    }
+
+    fn string(&mut self) -> Option<TokenType> {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' { self.line += 1; }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            error(self.line, "Unterminated string");
+            return None
+        }
+
+        self.advance();
+        println!("{},{},{}", self.start, self.current, self.source.len());
+        let value: String = self.source.clone()[self.start+1..self.current-1].to_string();
+        Some(LoxString(value))
     }
 }
 
