@@ -24,7 +24,7 @@ pub enum TokenType {
     // Literals
     Identifier,
     LoxString(String),
-    Number,
+    Number(f32),
     // Keywords
     And,
     Class,

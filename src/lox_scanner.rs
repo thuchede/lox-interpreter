@@ -4,7 +4,7 @@ use crate::error;
 use crate::scanner::Scanner;
 use crate::token::Token;
 use crate::token_type::TokenType;
-use crate::token_type::TokenType::{Bang, BangEqual, Comma, Dot, EOF, Equal, EqualEqual, Greater, GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, LoxString, Minus, Plus, RightBrace, RightParen, SemiColon, Slash, Star};
+use crate::token_type::TokenType::{Bang, BangEqual, Comma, Dot, EOF, Equal, EqualEqual, Greater, GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, LoxString, Minus, Number, Plus, RightBrace, RightParen, SemiColon, Slash, Star};
 
 pub struct LoxScanner {
     pub(crate) source: String,
@@ -71,9 +71,14 @@ impl LoxScanner {
                 None
             },
             '"' => self.string(),
-            e => {
-                error(self.line, format!("Unexpected character {}", e).as_str());
-                None
+            c => {
+                let res = if isDigit(c) {
+                    self.number()
+                } else {
+                    error(self.line, format!("Unexpected character {}", c).as_str());
+                    None
+                };
+                res
             }
         };
 
@@ -117,6 +122,13 @@ impl LoxScanner {
         }
     }
 
+    fn peek_next(&mut self) -> char {
+        if self.current+1 >= self.source.len() - 1 {
+            return '\0';
+        }
+        self.source.chars().nth(self.current + 1).unwrap()
+    }
+
     fn string(&mut self) -> Option<TokenType> {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' { self.line += 1; }
@@ -129,10 +141,27 @@ impl LoxScanner {
         }
 
         self.advance();
-        println!("{},{},{}", self.start, self.current, self.source.len());
         let value: String = self.source.clone()[self.start+1..self.current-1].to_string();
         Some(LoxString(value))
     }
+
+    fn number(&mut self) -> Option<TokenType> {
+        while isDigit(self.peek()) {
+            self.advance();
+        }
+        if self.peek() == '.' && isDigit(self.peek_next()) {
+            self.advance();
+        }
+        while isDigit(self.peek()) {
+            self.advance();
+        }
+        let value: f32 = self.source.clone()[self.start..self.current].parse::<f32>().unwrap();
+        Some(Number(value))
+    }
+}
+
+fn isDigit(c: char) -> bool {
+    c >= '0' && c <= '9'
 }
 
 
