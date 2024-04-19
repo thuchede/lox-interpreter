@@ -1,5 +1,5 @@
 use crate::{token};
 
 pub trait Scanner {
-    fn scan_tokens(self) -> Vec<token::Token>;
+    fn scan_tokens(&mut self) -> Vec<token::Token>;
 }

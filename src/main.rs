@@ -33,8 +33,9 @@ fn run_file(filename: &String) -> Result<(), Error> {
 
         // FIXME: remove
         println!("{}", file_content);
+        println!("___");
 
-        run(file_content.as_str());
+        run(file_content);
         Ok(())
     }
 }
@@ -57,14 +58,14 @@ fn run_prompt() {
             }
             Err(error) => println!("error: {error}"),
         }
-        run(input.as_str());
+        run(input.to_owned());
         set_global_error(false);
         input.clear();
     }
 }
 
-fn run(source: &str) {
-    let scanner = lox_scanner::LoxScanner::new(source);
+fn run(source: String) {
+    let mut scanner = lox_scanner::LoxScanner::new(source);
     let tokens = scanner.scan_tokens();
     tokens.iter().for_each(|t| println!("Token:{:?}", t));
 }
