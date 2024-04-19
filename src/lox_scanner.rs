@@ -1,10 +1,29 @@
-use std::borrow::BorrowMut;
-use std::thread::current;
+use std::collections::HashMap;
+use std::string::ToString;
 use crate::error;
 use crate::scanner::Scanner;
 use crate::token::Token;
 use crate::token_type::TokenType;
-use crate::token_type::TokenType::{Bang, BangEqual, Comma, Dot, EOF, Equal, EqualEqual, Greater, GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, LoxString, Minus, Number, Plus, RightBrace, RightParen, SemiColon, Slash, Star};
+use crate::token_type::TokenType::{And, Bang, BangEqual, Class, Comma, Dot, Else, EOF, Equal, EqualEqual, False, For, Fun, Greater, GreaterEqual, Identifier, If, LeftBrace, LeftParen, Less, LessEqual, LoxString, Minus, Nil, Number, Or, Plus, Print, Return, RightBrace, RightParen, SemiColon, Slash, Star, Super, This, True, Var, While};
+
+thread_local!(static KEYWORDS: HashMap<&'static str, TokenType> = HashMap::from([
+    ("and", And),
+    ("class", Class),
+    ("else", Else),
+    ("false", False),
+    ("for", For),
+    ("fun", Fun),
+    ("if", If),
+    ("nil", Nil),
+    ("or", Or),
+    ("print", Print),
+    ("return", Return),
+    ("super", Super),
+    ("this", This),
+    ("true", True),
+    ("var", Var),
+    ("while", While),
+]));
 
 pub struct LoxScanner {
     pub(crate) source: String,
@@ -74,6 +93,8 @@ impl LoxScanner {
             c => {
                 let res = if isDigit(c) {
                     self.number()
+                } else if isAlpha(c) {
+                    self.identifier()
                 } else {
                     error(self.line, format!("Unexpected character {}", c).as_str());
                     None
@@ -158,10 +179,30 @@ impl LoxScanner {
         let value: f32 = self.source.clone()[self.start..self.current].parse::<f32>().unwrap();
         Some(Number(value))
     }
+
+    fn identifier(&mut self) -> Option<TokenType> {
+        while isAlphaNumeric(self.peek()) {
+            self.advance();
+        }
+        let value = &self.source.clone()[self.start..self.current];
+        let token_type: TokenType = KEYWORDS.with(|k| match k.get(&value) {
+            Some(c) => c.clone(),
+            None => Identifier
+        });
+        Some(token_type)
+    }
+}
+
+fn isAlpha(c: char) -> bool {
+    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||  c == '_'
 }
 
 fn isDigit(c: char) -> bool {
     c >= '0' && c <= '9'
+}
+
+fn isAlphaNumeric(c: char) -> bool {
+    isAlpha(c) || isDigit(c)
 }
 
 
