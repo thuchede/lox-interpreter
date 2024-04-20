@@ -2,6 +2,7 @@ mod token_type;
 mod token;
 mod scanner;
 mod lox_scanner;
+mod expression;
 
 use std::{env, io};
 use std::cell::RefCell;
