@@ -5,7 +5,7 @@ mod lox_scanner;
 
 use std::{env, io};
 use std::cell::RefCell;
-use std::fs::read_to_string;
+use std::fs::{File, read_to_string};
 use std::io::{Error, ErrorKind, Read, Write};
 use std::process::exit;
 use crate::scanner::Scanner;
@@ -24,18 +24,15 @@ fn main() {
 }
 
 fn run_file(filename: &String) -> Result<(), Error> {
-    let file = read_to_string(filename.clone());
+    // let file = read_to_string(filename.clone());
+    let mut file = File::open(filename.clone()).unwrap();
+    let mut buf: Vec<u8> = Vec::new();
+    let res = file.read_to_end(&mut buf);
 
-    if file.is_err() {
+    if res.is_err() {
         return Err(Error::new(ErrorKind::NotFound, format!("file {} does not exist!", filename)));
     } else {
-        let file_content = file.unwrap();
-
-        // FIXME: remove
-        println!("{}", file_content);
-        println!("___");
-
-        run(file_content);
+        run(buf.as_slice());
         Ok(())
     }
 }
@@ -58,13 +55,13 @@ fn run_prompt() {
             }
             Err(error) => println!("error: {error}"),
         }
-        run(input.to_owned());
+        run(input.as_bytes());
         set_global_error(false);
         input.clear();
     }
 }
 
-fn run(source: String) {
+fn run(source: &[u8]) {
     let mut scanner = lox_scanner::LoxScanner::new(source);
     let tokens = scanner.scan_tokens();
     tokens.iter().for_each(|t| println!("Token:{:?}", t));
