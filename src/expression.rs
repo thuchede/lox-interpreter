@@ -7,6 +7,17 @@ enum Expr {
 	Unary(Unary),
 }
 
+trait Visitor<R> {
+	fn visit_binary(self, element: Binary) -> R ;
+	fn visit_grouping(self, element: Grouping) -> R ;
+	fn visit_literal(self, element: Literal) -> R ;
+	fn visit_unary(self, element: Unary) -> R ;
+}
+
+trait VisitedElement {
+	fn accept<S: Visitor<R>, R>(self, visitor: S) -> R;
+}
+
 struct Binary {
 	left: Box<Expr>,
 	operator: Token,
@@ -23,6 +34,12 @@ impl Binary {
 	}
 }
 
+impl VisitedElement for Binary {
+	fn accept<V: Visitor<R>, R>(self, visitor: V) -> R {
+		visitor.visit_binary(self)
+	}
+}
+
 struct Grouping {
 	expression: Box<Expr>,
 }
@@ -32,6 +49,12 @@ impl Grouping {
 		Grouping {
 			expression,
 		}
+	}
+}
+
+impl VisitedElement for Grouping {
+	fn accept<V: Visitor<R>, R>(self, visitor: V) -> R {
+		visitor.visit_grouping(self)
 	}
 }
 
@@ -47,6 +70,12 @@ impl Literal {
 	}
 }
 
+impl VisitedElement for Literal {
+	fn accept<V: Visitor<R>, R>(self, visitor: V) -> R {
+		visitor.visit_literal(self)
+	}
+}
+
 struct Unary {
 	operator: Token,
 	right: Box<Expr>,
@@ -58,6 +87,12 @@ impl Unary {
 			operator,
 			right,
 		}
+	}
+}
+
+impl VisitedElement for Unary {
+	fn accept<V: Visitor<R>, R>(self, visitor: V) -> R {
+		visitor.visit_unary(self)
 	}
 }
 

@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::hash::Hash;
 use std::io::Write;
 fn main() {
     let mut buffer = File::create("src/expression.rs").unwrap();
@@ -19,6 +20,8 @@ fn define_ast(types: Vec<&str>, buffer: &mut File) {
         buffer.write_all(format!("\t{rule}({rule}),\n").as_bytes()).unwrap();
     }
     buffer.write_all("}\n\n".as_bytes()).unwrap();
+
+    define_visitor(types.clone(), "Expr".to_string(), buffer);
 
     // all structs for rules
     for x in types {
@@ -70,5 +73,30 @@ fn define_ast(types: Vec<&str>, buffer: &mut File) {
         buffer.write_all("\t\t}\n".as_bytes()).unwrap();
         buffer.write_all("\t}\n".as_bytes()).unwrap();
         buffer.write_all("}\n\n".as_bytes()).unwrap();
+        // end constructor
+
+        // implement VisitedElement for rule
+        let impl_start = format!("impl VisitedElement for {} {{\n", rule);
+        buffer.write_all(impl_start.as_bytes()).unwrap();
+        buffer.write_all("\tfn accept<V: Visitor<R>, R>(self, visitor: V) -> R {\n".as_bytes()).unwrap();
+        let rule_lower = rule.to_lowercase();
+        buffer.write_all(format!("\t\tvisitor.visit_{rule_lower}(self)\n").as_bytes()).unwrap();
+        buffer.write_all("\t}\n".as_bytes()).unwrap();
+        buffer.write_all("}\n\n".as_bytes()).unwrap();
+        // end VisitedElement
+
     }
+}
+
+fn define_visitor(types: Vec<&str>, base_name: String, buffer: &mut File) {
+    buffer.write_all(b"trait Visitor<R> {\n").unwrap();
+    for x in types {
+        let (rule, _) = x.split_once(" : ").unwrap();
+        let rule_lower = rule.to_lowercase();
+        buffer.write_all(format!("\tfn visit_{rule_lower}(self, element: {rule}) -> R ;\n").as_bytes()).unwrap();
+    }
+    buffer.write_all(b"}\n\n").unwrap();
+    buffer.write_all(b"trait VisitedElement {\n").unwrap();
+    buffer.write_all(b"\tfn accept<S: Visitor<R>, R>(self, visitor: S) -> R;\n").unwrap();
+    buffer.write_all(b"}\n\n").unwrap();
 }
