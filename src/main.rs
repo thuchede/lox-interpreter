@@ -5,7 +5,7 @@ mod lox_scanner;
 
 use std::{env, io};
 use std::cell::RefCell;
-use std::fs::{File, read_to_string};
+use std::fs::{File};
 use std::io::{Error, ErrorKind, Read, Write};
 use std::process::exit;
 use crate::scanner::Scanner;

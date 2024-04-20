@@ -91,9 +91,9 @@ impl <'a> LoxScanner<'a> {
             },
             '"' => self.string(),
             c => {
-                let res = if isDigit(c) {
+                let res = if is_digit(c) {
                     self.number()
-                } else if isAlpha(c) {
+                } else if is_alpha(c) {
                     self.identifier()
                 } else {
                     error(self.line, format!("Unexpected character {}", c).as_str());
@@ -168,13 +168,13 @@ impl <'a> LoxScanner<'a> {
     }
 
     fn number(&mut self) -> Option<TokenType> {
-        while isDigit(self.peek()) {
+        while is_digit(self.peek()) {
             self.advance();
         }
-        if self.peek() == '.' && isDigit(self.peek_next()) {
+        if self.peek() == '.' && is_digit(self.peek_next()) {
             self.advance();
         }
-        while isDigit(self.peek()) {
+        while is_digit(self.peek()) {
             self.advance();
         }
         let value: f32 = std::str::from_utf8(&self.source[self.start..self.current]).expect("Invalid utf8 sequence").to_string().parse::<f32>().unwrap();
@@ -182,7 +182,7 @@ impl <'a> LoxScanner<'a> {
     }
 
     fn identifier(&mut self) -> Option<TokenType> {
-        while isAlphaNumeric(self.peek()) {
+        while is_alpha_numeric(self.peek()) {
             self.advance();
         }
         let value: &str = std::str::from_utf8(&self.source[self.start+1..self.current-1]).expect("Invalid utf8 sequence");
@@ -194,16 +194,16 @@ impl <'a> LoxScanner<'a> {
     }
 }
 
-fn isAlpha(c: char) -> bool {
+fn is_alpha(c: char) -> bool {
     (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||  c == '_'
 }
 
-fn isDigit(c: char) -> bool {
+fn is_digit(c: char) -> bool {
     c >= '0' && c <= '9'
 }
 
-fn isAlphaNumeric(c: char) -> bool {
-    isAlpha(c) || isDigit(c)
+fn is_alpha_numeric(c: char) -> bool {
+    is_alpha(c) || is_digit(c)
 }
 
 
