@@ -1,31 +1,31 @@
 use std::any::Any;
 use crate::token::Token;
-enum Expr {
+pub enum Expr {
 	Binary(Binary),
 	Grouping(Grouping),
 	Literal(Literal),
 	Unary(Unary),
 }
 
-trait Visitor<R> {
-	fn visit_binary(self, element: Binary) -> R ;
-	fn visit_grouping(self, element: Grouping) -> R ;
-	fn visit_literal(self, element: Literal) -> R ;
-	fn visit_unary(self, element: Unary) -> R ;
+pub trait Visitor<R> {
+	fn visit_binary(&self, element: &Binary) -> R ;
+	fn visit_grouping(&self, element: &Grouping) -> R ;
+	fn visit_literal(&self, element: &Literal) -> R ;
+	fn visit_unary(&self, element: &Unary) -> R ;
 }
 
-trait VisitedElement {
-	fn accept<S: Visitor<R>, R>(self, visitor: S) -> R;
+pub trait VisitedElement {
+	fn accept<S: Visitor<R>, R>(&self, visitor: S) -> R;
 }
 
-struct Binary {
-	left: Box<Expr>,
-	operator: Token,
-	right: Box<Expr>,
+pub struct Binary {
+	pub left: Box<Expr>,
+	pub operator: Token,
+	pub right: Box<Expr>,
 }
 
 impl Binary {
-	fn new(left: Box<Expr>, operator: Token, right: Box<Expr>, ) -> Self {
+	pub fn new(left: Box<Expr>, operator: Token, right: Box<Expr>, ) -> Self {
 		Binary {
 			left,
 			operator,
@@ -35,17 +35,17 @@ impl Binary {
 }
 
 impl VisitedElement for Binary {
-	fn accept<V: Visitor<R>, R>(self, visitor: V) -> R {
-		visitor.visit_binary(self)
+	fn accept<V: Visitor<R>, R>(&self, visitor: V) -> R {
+		visitor.visit_binary(&self)
 	}
 }
 
-struct Grouping {
-	expression: Box<Expr>,
+pub struct Grouping {
+	pub expression: Box<Expr>,
 }
 
 impl Grouping {
-	fn new(expression: Box<Expr>, ) -> Self {
+	pub fn new(expression: Box<Expr>, ) -> Self {
 		Grouping {
 			expression,
 		}
@@ -53,17 +53,17 @@ impl Grouping {
 }
 
 impl VisitedElement for Grouping {
-	fn accept<V: Visitor<R>, R>(self, visitor: V) -> R {
-		visitor.visit_grouping(self)
+	fn accept<V: Visitor<R>, R>(&self, visitor: V) -> R {
+		visitor.visit_grouping(&self)
 	}
 }
 
-struct Literal {
-	value: Box<dyn Any>,
+pub struct Literal {
+	pub value: Option<String>,
 }
 
 impl Literal {
-	fn new(value: Box<dyn Any>, ) -> Self {
+	pub fn new(value: Option<String>, ) -> Self {
 		Literal {
 			value,
 		}
@@ -71,18 +71,18 @@ impl Literal {
 }
 
 impl VisitedElement for Literal {
-	fn accept<V: Visitor<R>, R>(self, visitor: V) -> R {
-		visitor.visit_literal(self)
+	fn accept<V: Visitor<R>, R>(&self, visitor: V) -> R {
+		visitor.visit_literal(&self)
 	}
 }
 
-struct Unary {
-	operator: Token,
-	right: Box<Expr>,
+pub struct Unary {
+	pub operator: Token,
+	pub right: Box<Expr>,
 }
 
 impl Unary {
-	fn new(operator: Token, right: Box<Expr>, ) -> Self {
+	pub fn new(operator: Token, right: Box<Expr>, ) -> Self {
 		Unary {
 			operator,
 			right,
@@ -91,8 +91,18 @@ impl Unary {
 }
 
 impl VisitedElement for Unary {
-	fn accept<V: Visitor<R>, R>(self, visitor: V) -> R {
-		visitor.visit_unary(self)
+	fn accept<V: Visitor<R>, R>(&self, visitor: V) -> R {
+		visitor.visit_unary(&self)
 	}
 }
 
+impl VisitedElement for Expr {
+	fn accept<S: Visitor<R>, R>(&self, visitor: S) -> R {
+		match self {
+			 Expr::Binary(b) => {b.accept(visitor)},
+			 Expr::Grouping(b) => {b.accept(visitor)},
+			 Expr::Literal(b) => {b.accept(visitor)},
+			 Expr::Unary(b) => {b.accept(visitor)},
+		}
+	}
+}

@@ -2,6 +2,7 @@ mod token_type;
 mod token;
 mod scanner;
 mod lox_scanner;
+mod ast_printer;
 mod expression;
 
 use std::{env, io};
@@ -9,20 +10,42 @@ use std::cell::RefCell;
 use std::fs::{File};
 use std::io::{Error, ErrorKind, Read, Write};
 use std::process::exit;
+use crate::ast_printer::AstPrinter;
+use crate::expression::{Binary, Expr, Grouping, Literal, Unary, VisitedElement};
 use crate::scanner::Scanner;
+use crate::token::Token;
+use crate::token_type::TokenType;
+
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let expr = Expr::Binary(Binary::new(
+        Box::new(Expr::Unary(Unary::new(
+            Token::new(TokenType::Minus, "-".to_string(), "".to_string(), 1),
+            Box::new(Expr::Literal(Literal::new(Some("123".to_string())))),
+        ))),
+        Token::new(TokenType::Star, "*".to_string(), "".to_string(), 1),
+        Box::new(Expr::Grouping(Grouping::new(
+            Box::new(Expr::Literal(Literal::new(Some("45.67".to_string()))))
+        )))
+    ));
+    let printer: AstPrinter = AstPrinter { };
+    let pretty = expr.accept(printer);
 
-    if args.len() > 2 {
-        println!("Usage: rlox [script]");
-    } else if let Some(filename) = args.get(1) {
-        run_file(filename).expect("File should exist");
-        if has_global_error() { exit(65) }
-    } else {
-        run_prompt()
-    }
+    println!("{pretty}");
 }
+
+// fn main() {
+//     let args: Vec<String> = env::args().collect();
+//
+//     if args.len() > 2 {
+//         println!("Usage: rlox [script]");
+//     } else if let Some(filename) = args.get(1) {
+//         run_file(filename).expect("File should exist");
+//         if has_global_error() { exit(65) }
+//     } else {
+//         run_prompt()
+//     }
+// }
 
 fn run_file(filename: &String) -> Result<(), Error> {
     // let file = read_to_string(filename.clone());
