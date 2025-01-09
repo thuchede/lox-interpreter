@@ -4,6 +4,7 @@ mod scanner;
 mod lox_scanner;
 mod ast_printer;
 mod expression;
+mod lox_parser;
 
 use std::{env, io};
 use std::cell::RefCell;
